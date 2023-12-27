@@ -6,9 +6,6 @@
 #include "GameFramework/Actor.h"
 #include "GenericPlatform/GenericPlatformTime.h"
 #include "LidarThreadProcess.h"
-THIRD_PARTY_INCLUDES_START
-#include <UDPComponent.h>
-THIRD_PARTY_INCLUDES_END
 #include "LidarBaseActor.generated.h"
 
 UCLASS()
@@ -23,7 +20,7 @@ public:
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MetaLidar")
   UStaticMeshComponent* LidarMeshComponent;
 
-  class UUDPComponent* UdpScanComponent;
+  //class UUDPComponent* UdpScanComponent;
 
 protected:
   // Called when the game starts or when spawned
@@ -39,7 +36,7 @@ public:
   /**
   * Set UDP communication parameters for scan data
   */
-  virtual void ConfigureUDPScan(){}
+  //virtual void ConfigureUDPScan(){}
 
   /**
   * Main routine

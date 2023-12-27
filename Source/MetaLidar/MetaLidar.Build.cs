@@ -38,8 +38,8 @@ public class MetaLidar : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"PhysicsCore",				
-				"UDPWrapper",
-				"Projects"	
+				"Projects",
+				"ROSIntegration"	
 			}
 			);
 		

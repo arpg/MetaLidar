@@ -17,16 +17,23 @@ void AVelodyneLidarActor::BeginPlay()
 {
   Super::BeginPlay();
 
-  if(UdpScanComponent)
-  {
-    ConfigureUDPScan();
-    UdpScanComponent->OpenSendSocket(UdpScanComponent->Settings.SendIP, UdpScanComponent->Settings.SendPort);
-    UdpScanComponent->OpenReceiveSocket(UdpScanComponent->Settings.ReceiveIP, UdpScanComponent->Settings.SendPort);
-  }
+  // if(UdpScanComponent)
+  // {
+  //   ConfigureUDPScan();
+  //   UdpScanComponent->OpenSendSocket(UdpScanComponent->Settings.SendIP, UdpScanComponent->Settings.SendPort);
+  //   UdpScanComponent->OpenReceiveSocket(UdpScanComponent->Settings.ReceiveIP, UdpScanComponent->Settings.SendPort);
+  // }
 
-  FTimespan ThreadSleepTime =
-  FTimespan::FromMilliseconds(LidarComponent->Sensor.NumberDataBlock * (LidarComponent->Sensor.NumberDataChannel / LidarComponent->Sensor.NumberLaserEmitter) * (0.000001f * FIRING_CYCLE));
+  FTimespan ThreadSleepTime = FTimespan::FromMilliseconds(LidarComponent->Sensor.NumberDataBlock * (LidarComponent->Sensor.NumberDataChannel / LidarComponent->Sensor.NumberLaserEmitter) * (0.000001f * FIRING_CYCLE));
+  //FTimespan ThreadSleepTime = FTimespan::FromMilliseconds(1000);
   FString UniqueThreadName = "LidarThread";
+
+  //ROS Topic
+  
+  PointCloudTopic = NewObject<UTopic>(UTopic::StaticClass());
+  rosinst = Cast<UROSIntegrationGameInstance>(GetGameInstance());
+  PointCloudTopic->Init(rosinst->ROSIntegrationCore, TEXT("/points"), TEXT("sensor_msgs/PointCloud2"));
+  PointCloudTopic->Advertise();
 
   LidarThread = new LidarThreadProcess(ThreadSleepTime,*UniqueThreadName, this);
 
@@ -94,10 +101,18 @@ void AVelodyneLidarActor::LidarThreadTick()
   LidarComponent->GetScanData();
 
   // Generate veldyne data packet
-  LidarComponent->GenerateDataPacket(PacketTimestamp);
+  //LidarComponent->GenerateDataPacket(PacketTimestamp);
+
+  // Ros Publication
+  TArray<uint8> data;
+  TSharedPtr<ROSMessages::sensor_msgs::PointCloud2> PointCloudMessage(new ROSMessages::sensor_msgs::PointCloud2());
+  LidarComponent->GeneratePointCloud2Msg(PointCloudMessage, data);
+  PointCloudTopic->Publish(PointCloudMessage);
+  PointCloudMessage.Reset();
+  data.Empty();
 
   // Multicast Delegate event for broadcating packet data
-  UdpScanComponent->EmitBytes(LidarComponent->Sensor.DataPacket);
+  //UdpScanComponent->EmitBytes(LidarComponent->Sensor.DataPacket);
 
   TimeDiffMs = (float)(FPlatformTime::Seconds() - BeginTimestamp);
 
@@ -111,11 +126,11 @@ void AVelodyneLidarActor::LidarThreadTick()
   }
 }
 
-void AVelodyneLidarActor::ConfigureUDPScan()
-{
-  UdpScanComponent->Settings.SendIP    = LidarComponent->DestinationIP;
-  UdpScanComponent->Settings.ReceiveIP = LidarComponent->SensorIP;
-  UdpScanComponent->Settings.SendPort  = LidarComponent->ScanPort;
-  UdpScanComponent->Settings.SendSocketName = FString(TEXT("ue5-scan-send"));
-  UdpScanComponent->Settings.BufferSize = PACKET_HEADER_SIZE + DATA_PACKET_PAYLOAD;
-}
+// void AVelodyneLidarActor::ConfigureUDPScan()
+// {
+//   UdpScanComponent->Settings.SendIP    = LidarComponent->DestinationIP;
+//   UdpScanComponent->Settings.ReceiveIP = LidarComponent->SensorIP;
+//   UdpScanComponent->Settings.SendPort  = LidarComponent->ScanPort;
+//   UdpScanComponent->Settings.SendSocketName = FString(TEXT("ue5-scan-send"));
+//   UdpScanComponent->Settings.BufferSize = PACKET_HEADER_SIZE + DATA_PACKET_PAYLOAD;
+// }

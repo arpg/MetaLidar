@@ -5,6 +5,9 @@
 #include "CoreMinimal.h"
 #include "Velodyne/VelodyneBaseComponent.h"
 #include "LidarBaseActor.h"
+#include "ROSIntegration/Classes/RI/Topic.h"
+#include "ROSIntegration/Classes/ROSIntegrationGameInstance.h"
+#include "ROSIntegration/Public/sensor_msgs/PointCloud2.h"
 #include "VelodyneLidarActor.generated.h"
 
 /**
@@ -21,6 +24,9 @@ public:
 
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MetaLidar")
   class UVelodyneBaseComponent* LidarComponent;
+  UPROPERTY();
+  UTopic *PointCloudTopic;
+  UROSIntegrationGameInstance* rosinst;
 
 protected:
   // Called when the game starts or when spawned
@@ -33,7 +39,7 @@ public:
   /**
   * Set UDP communication parameters for scan data
   */
-  virtual void ConfigureUDPScan() override;
+  //virtual void ConfigureUDPScan() override;
 
   /**
   * Main routine
