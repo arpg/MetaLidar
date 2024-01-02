@@ -8,6 +8,7 @@
 #include "ROSIntegration/Classes/RI/Topic.h"
 #include "ROSIntegration/Classes/ROSIntegrationGameInstance.h"
 #include "ROSIntegration/Public/sensor_msgs/PointCloud2.h"
+#include "HAL/ThreadingBase.h"  // Include this for FMutex
 #include "VelodyneLidarActor.generated.h"
 
 /**
@@ -27,6 +28,8 @@ public:
   UPROPERTY();
   UTopic *PointCloudTopic;
   UROSIntegrationGameInstance* rosinst;
+  FCriticalSection SwapMutex;
+  float LastOperationTime;
 
 protected:
   // Called when the game starts or when spawned
