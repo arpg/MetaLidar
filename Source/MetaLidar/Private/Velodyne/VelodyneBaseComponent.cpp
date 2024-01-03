@@ -14,8 +14,9 @@ UVelodyneBaseComponent::UVelodyneBaseComponent()
   Sensor.FieldOfView = 33.2;
   Sensor.HorizontalResolution = 1024;
   Sensor.VerticalResolution = 64;
-  Sensor.MinRange = 0.8f;
-  Sensor.MaxRange = 50.0f;
+  Sensor.MinRange = 0.8f * 100; // Convert from meters to centimeters
+  Sensor.MaxRange = 50.0f * 100; // Convert from meters to centimeters
+
 
   PointStep = 13; // 4 bytes each for X, Y, Z, and 1 byte for intensity
 
@@ -163,10 +164,13 @@ void UVelodyneBaseComponent::GetScanData()
   // Get owner's location and rotation
   FVector LidarPosition = this->GetActorLocation();
   FRotator LidarRotation = this->GetActorRotation();
+  // UE_LOG(LogTemp, Log, TEXT("Lidar Position: %s, Lidar Rotation: %s"), *LidarPosition.ToString(), *LidarRotation.ToString());
 
   // Initialize RecordedHits with total number of hits
   int TotalHits = Sensor.ElevationAngleArray.Num() * Sensor.AzimuthAngleArray.Num();
   Sensor.RecordedHits.Init(FHitResult(ForceInit), TotalHits);
+
+  // UE_LOG(LogTemp, Log, TEXT("Min Range %f, Max Range %f"), Sensor.MinRange, Sensor.MaxRange);
 
   // Calculate batch size for 'ParallelFor' based on workable thread
   const int ThreadNum = FPlatformMisc::NumberOfWorkerThreadsToSpawn();
@@ -201,12 +205,17 @@ void UVelodyneBaseComponent::GetScanData()
 
           LaserRotation.Add(VAngle, HAngle, 0.f);
           FRotator Rotation = UKismetMathLibrary::ComposeRotators(LaserRotation, LidarRotation);
-
+          
           FVector BeginPoint = LidarPosition + Sensor.MinRange * UKismetMathLibrary::GetForwardVector(Rotation);
           FVector EndPoint = LidarPosition + Sensor.MaxRange * UKismetMathLibrary::GetForwardVector(Rotation);
 
           GetWorld()->LineTraceSingleByChannel(
               Sensor.RecordedHits[Index], BeginPoint, EndPoint, ECC_Visibility, TraceParams, FCollisionResponseParams::DefaultResponseParam);
+          
+          // FVector HitLocation = Sensor.RecordedHits[Index].Location;
+
+          // UE_LOG(LogTemp, Log, TEXT("Hit at index %d: Start X=%f, Y=%f, Z=%f | End X=%f, Y=%f, Z=%f | Hit X=%f, Y=%f, Z=%f"),
+          //        Index, BeginPoint.X, BeginPoint.Y, BeginPoint.Z, EndPoint.X, EndPoint.Y, EndPoint.Z, HitLocation.X, HitLocation.Y, HitLocation.Z);
         }
       },
       !SupportMultithread);
@@ -248,6 +257,8 @@ void UVelodyneBaseComponent::AccumulateMessageData()
     float X = static_cast<float>(hitPoint.X);
     float Y = static_cast<float>(hitPoint.Y);
     float Z = static_cast<float>(hitPoint.Z);
+
+    // UE_LOG(LogTemp, Display, TEXT("Hit at index %d: Location X=%f, Y=%f, Z=%f"), i, X, Y, Z);
 
     auto PhysMat = Sensor.RecordedHits[i].PhysMaterial;
     uint8 intensity = 0x00;
