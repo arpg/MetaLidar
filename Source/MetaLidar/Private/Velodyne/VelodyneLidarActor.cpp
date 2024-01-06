@@ -71,7 +71,20 @@ void AVelodyneLidarActor::EndPlay(EEndPlayReason::Type Reason)
 // This would be a verrrrry large hitch if done on game thread!
 void AVelodyneLidarActor::LidarThreadTick()
 {
-  float CurrentGameTime = GetWorld()->GetTimeSeconds();
+  UWorld* World = GetWorld();
+  float CurrentGameTime = 0.0f;  // Declare outside to have broader scope
+
+  if (World != nullptr)
+  {
+      CurrentGameTime = World->GetTimeSeconds();
+      UE_LOG(LogTemp, Warning, TEXT("GetWorld() returned not null"));
+  }
+  else
+  {
+      UE_LOG(LogTemp, Warning, TEXT("GetWorld() returned nullptr"));
+      return;
+  }
+
   float TimeSinceLastOperation = CurrentGameTime - LastOperationTime;
 
   //! Make sure to come all the way out of all function routines with this same check
