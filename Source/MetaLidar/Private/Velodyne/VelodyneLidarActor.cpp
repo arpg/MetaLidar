@@ -77,11 +77,11 @@ void AVelodyneLidarActor::LidarThreadTick()
   if (World != nullptr)
   {
       CurrentGameTime = World->GetTimeSeconds();
-      UE_LOG(LogTemp, Warning, TEXT("GetWorld() returned not null"));
+      //UE_LOG(LogTemp, Warning, TEXT("GetWorld() returned not null"));
   }
   else
   {
-      UE_LOG(LogTemp, Warning, TEXT("GetWorld() returned nullptr"));
+      //UE_LOG(LogTemp, Warning, TEXT("GetWorld() returned nullptr"));
       return;
   }
 
