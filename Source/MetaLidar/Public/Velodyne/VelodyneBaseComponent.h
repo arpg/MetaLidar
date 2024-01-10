@@ -31,6 +31,9 @@ public:
   TArray<float> AzimuthAngleArray;
   TArray<float> ElevationAngleArray;
   TArray<FHitResult> RecordedHits;
+
+
+
 };
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
@@ -49,6 +52,8 @@ public:
 
 
   FOusterLidar Sensor;
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Velodyne")
+  FString FrameName;
 
   void GenerateElevationAngleArray();
   void GenerateAzimuthAngleArray();

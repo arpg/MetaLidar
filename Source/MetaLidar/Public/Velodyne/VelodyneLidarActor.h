@@ -8,7 +8,7 @@
 #include "ROSIntegration/Classes/RI/Topic.h"
 #include "ROSIntegration/Classes/ROSIntegrationGameInstance.h"
 #include "ROSIntegration/Public/sensor_msgs/PointCloud2.h"
-#include "HAL/ThreadingBase.h"  // Include this for FMutex
+#include "HAL/ThreadingBase.h" // Include this for FMutex
 #include "VelodyneLidarActor.generated.h"
 
 /**
@@ -24,12 +24,10 @@ public:
   AVelodyneLidarActor();
 
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MetaLidar")
-  class UVelodyneBaseComponent* LidarComponent;
+  class UVelodyneBaseComponent *LidarComponent;
   UPROPERTY();
   UTopic *PointCloudTopic;
-  UROSIntegrationGameInstance* rosinst;
-  FCriticalSection SwapMutex;
-  float LastOperationTime;
+  UROSIntegrationGameInstance *rosinst;
 
 protected:
   // Called when the game starts or when spawned
@@ -38,15 +36,23 @@ protected:
   // Called when the game end
   virtual void EndPlay(EEndPlayReason::Type Reason) override;
 
+  void SetPublishLidar();
+
+  // Publish lidar data (Triggered by Timer)
+  bool PublishLidarData;
+  float Frequency;
+  FCriticalSection SwapMutex;
+  FTimerHandle TimerHandle_PublishLidar;
+
 public:
   /**
-  * Set UDP communication parameters for scan data
-  */
-  //virtual void ConfigureUDPScan() override;
+   * Set UDP communication parameters for scan data
+   */
+  // virtual void ConfigureUDPScan() override;
 
   /**
-  * Main routine
-  * calculate raytracing and generate LiDAR packet data
-  */
+   * Main routine
+   * calculate raytracing and generate LiDAR packet data
+   */
   virtual void LidarThreadTick() override;
 };

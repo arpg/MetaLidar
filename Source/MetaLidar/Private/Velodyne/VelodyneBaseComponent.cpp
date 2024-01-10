@@ -17,6 +17,8 @@ UVelodyneBaseComponent::UVelodyneBaseComponent()
   Sensor.MinRange = 0.8f * 100; // Convert from meters to centimeters
   Sensor.MaxRange = 50.0f * 100; // Convert from meters to centimeters
 
+  FrameName = TEXT("horiz/ouster");
+
 
   PointStep = 13; // 4 bytes each for X, Y, Z, and 1 byte for intensity
 
@@ -302,7 +304,7 @@ void UVelodyneBaseComponent::GeneratePointCloud2Msg(TSharedPtr<ROSMessages::sens
   }
 
   // Initialize PointCloud2 Message
-  OutMsgPtr->header.frame_id = "ouster";
+  OutMsgPtr->header.frame_id = FrameName;
   OutMsgPtr->header.time = FROSTime::Now(); // Use your method to get the current time
 
   UE_LOG(LogTemp, Log, TEXT("Initialized PointCloud2 Message with frame_id=%s"), *OutMsgPtr->header.frame_id);
