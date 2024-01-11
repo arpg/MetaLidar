@@ -14,11 +14,10 @@ UVelodyneBaseComponent::UVelodyneBaseComponent()
   Sensor.FieldOfView = 33.2;
   Sensor.HorizontalResolution = 1024;
   Sensor.VerticalResolution = 64;
-  Sensor.MinRange = 0.8f * 100; // Convert from meters to centimeters
+  Sensor.MinRange = 0.8f * 100;  // Convert from meters to centimeters
   Sensor.MaxRange = 50.0f * 100; // Convert from meters to centimeters
 
   FrameName = TEXT("horiz/ouster");
-
 
   PointStep = 13; // 4 bytes each for X, Y, Z, and 1 byte for intensity
 
@@ -172,6 +171,16 @@ void UVelodyneBaseComponent::GetScanData()
   int TotalHits = Sensor.ElevationAngleArray.Num() * Sensor.AzimuthAngleArray.Num();
   Sensor.RecordedHits.Init(FHitResult(ForceInit), TotalHits);
 
+  // Get the transform and log it
+  FTransform OriginalTransform = GetOwner()->GetTransform();
+  OriginalTransform.SetScale3D(FVector(1.0f, 1.0f, 1.0f));
+  FRotator NewRotation = FRotator(0.0f, 0.0f, 0.0f); // Example: No pitch, 90 degrees yaw, no roll
+  OriginalTransform.SetRotation(FQuat(NewRotation));
+  UE_LOG(LogTemp, Log, TEXT("Original Transform: %s"), *OriginalTransform.ToString());
+
+  FTransform LidarInverseTransform = OriginalTransform.Inverse();
+  UE_LOG(LogTemp, Log, TEXT("Inverted Transform: %s"), *LidarInverseTransform.ToString());
+
   // UE_LOG(LogTemp, Log, TEXT("Min Range %f, Max Range %f"), Sensor.MinRange, Sensor.MaxRange);
 
   // Calculate batch size for 'ParallelFor' based on workable thread
@@ -207,13 +216,28 @@ void UVelodyneBaseComponent::GetScanData()
 
           LaserRotation.Add(VAngle, HAngle, 0.f);
           FRotator Rotation = UKismetMathLibrary::ComposeRotators(LaserRotation, LidarRotation);
-          
+
           FVector BeginPoint = LidarPosition + Sensor.MinRange * UKismetMathLibrary::GetForwardVector(Rotation);
           FVector EndPoint = LidarPosition + Sensor.MaxRange * UKismetMathLibrary::GetForwardVector(Rotation);
 
+          FHitResult HitLocation;
+          // GetWorld()->LineTraceSingleByChannel(
+          //     HitLocation, BeginPoint, EndPoint, ECC_Visibility, TraceParams, FCollisionResponseParams::DefaultResponseParam);
+          // FVector InverseHitLocation = LidarInverseTransform.TransformPosition(HitLocation.Location);
+
           GetWorld()->LineTraceSingleByChannel(
               Sensor.RecordedHits[Index], BeginPoint, EndPoint, ECC_Visibility, TraceParams, FCollisionResponseParams::DefaultResponseParam);
-          
+
+          Sensor.RecordedHits[Index].ImpactPoint = LidarInverseTransform.TransformPosition(Sensor.RecordedHits[Index].ImpactPoint);
+          // Sensor.RecordedHits[Index] = HitLocation;
+          // Sensor.RecordedHits[Index].ImpactPoint = InverseHitLocation;
+
+          // UE_LOG(LogTemp, Log, TEXT("Hit at index %d: Original Hit Location: X=%f, Y=%f, Z=%f | Transformed Hit Location: X=%f, Y=%f, Z=%f"),
+          //        Index, HitLocation.Location.X, HitLocation.Location.Y, HitLocation.Location.Z, InverseHitLocation.X, InverseHitLocation.Y, InverseHitLocation.Z);
+
+          // UE_LOG(LogTemp, Log, TEXT("Hit at index %d: Location in Vector: X=%f, Y=%f, Z=%f" ),
+          //        Index, Sensor.RecordedHits[Index].Location.X, Sensor.RecordedHits[Index].Location.Y,Sensor.RecordedHits[Index].Location.Z);
+
           // FVector HitLocation = Sensor.RecordedHits[Index].Location;
 
           // UE_LOG(LogTemp, Log, TEXT("Hit at index %d: Start X=%f, Y=%f, Z=%f | End X=%f, Y=%f, Z=%f | Hit X=%f, Y=%f, Z=%f"),
