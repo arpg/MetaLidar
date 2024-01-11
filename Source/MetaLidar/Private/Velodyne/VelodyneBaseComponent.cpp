@@ -275,8 +275,8 @@ void UVelodyneBaseComponent::AccumulateMessageData()
   {
     FVector hitPointCM = Sensor.RecordedHits[i].ImpactPoint; // Assuming ImpactPoint is the XYZ coordinate
     FVector hitPoint;
-    hitPoint.X = hitPointCM.Y * 0.01f;
-    hitPoint.Y = hitPointCM.X * -0.01f;
+    hitPoint.X = hitPointCM.X * 0.01f;
+    hitPoint.Y = hitPointCM.Y * -0.01f;
     hitPoint.Z = hitPointCM.Z * 0.01f;
 
     // Convert double to float before copying
