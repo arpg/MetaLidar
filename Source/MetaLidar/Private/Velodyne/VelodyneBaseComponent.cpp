@@ -174,9 +174,10 @@ void UVelodyneBaseComponent::GetScanData()
   // Get the transform and log it
   FTransform OriginalTransform = GetOwner()->GetTransform();
   OriginalTransform.SetScale3D(FVector(1.0f, 1.0f, 1.0f));
-  FRotator NewRotation = FRotator(0.0f, 0.0f, 0.0f); // Example: No pitch, 90 degrees yaw, no roll
+
+  // Modify the rotation here: Flip roll and yaw by 180 degrees
+  FRotator NewRotation = FRotator(0.0f, LidarRotation.Yaw - 180.0f, LidarRotation.Roll - 180.0f); 
   OriginalTransform.SetRotation(FQuat(NewRotation));
-  UE_LOG(LogTemp, Log, TEXT("Original Transform: %s"), *OriginalTransform.ToString());
 
   FTransform LidarInverseTransform = OriginalTransform.Inverse();
   UE_LOG(LogTemp, Log, TEXT("Inverted Transform: %s"), *LidarInverseTransform.ToString());
