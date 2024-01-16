@@ -11,7 +11,7 @@ AVelodyneLidarActor::AVelodyneLidarActor()
   LidarComponent = CreateDefaultSubobject<UVelodyneBaseComponent>(TEXT("VelodyneComponent"));
   this->AddOwnedComponent(LidarComponent);
   PublishLidarData = false;
-  Frequency = 1/15.0f;
+  Frequency = 1 / 15.0f;
 }
 
 // Called when the game starts or when spawned
@@ -19,28 +19,6 @@ void AVelodyneLidarActor::BeginPlay()
 {
   UE_LOG(LogTemp, Warning, TEXT("AVelodyneLidarActor BeginPlay called"));
   Super::BeginPlay();
-
-  FTimespan ThreadSleepTime = FTimespan::FromMilliseconds(1000);
-  FString UniqueThreadName = "LidarThread";
-
-  // ROS Topic
-
-  PointCloudTopic = NewObject<UTopic>(UTopic::StaticClass());
-  rosinst = Cast<UROSIntegrationGameInstance>(GetGameInstance());
-  PointCloudTopic->Init(rosinst->ROSIntegrationCore, TEXT("/unreal/points"), TEXT("sensor_msgs/PointCloud2"));
-  PointCloudTopic->Advertise();
-
-  LidarThread = new LidarThreadProcess(ThreadSleepTime, *UniqueThreadName, this);
-
-  if (LidarThread)
-  {
-    LidarThread->Init();
-    LidarThread->LidarThreadInit();
-    UE_LOG(LogTemp, Warning, TEXT("Lidar thread initialized!"));
-  }
-
-  GetWorld()->GetTimerManager().SetTimer(TimerHandle_PublishLidar, this, &AVelodyneLidarActor::SetPublishLidar, Frequency, true);
-
 }
 
 void AVelodyneLidarActor::EndPlay(EEndPlayReason::Type Reason)
@@ -70,6 +48,29 @@ void AVelodyneLidarActor::EndPlay(EEndPlayReason::Type Reason)
   Super::EndPlay(Reason);
 }
 
+void AVelodyneLidarActor::StartLidar(FString RosTopic)
+{
+
+  FTimespan ThreadSleepTime = FTimespan::FromMilliseconds(1000);
+  FString UniqueThreadName = "LidarThread";
+
+  GetWorld()->GetTimerManager().SetTimer(TimerHandle_PublishLidar, this, &AVelodyneLidarActor::SetPublishLidar, Frequency, true);
+  // ROS Topic
+  PointCloudTopic = NewObject<UTopic>(UTopic::StaticClass());
+  rosinst = Cast<UROSIntegrationGameInstance>(GetGameInstance());
+  PointCloudTopic->Init(rosinst->ROSIntegrationCore, RosTopic, TEXT("sensor_msgs/PointCloud2"));
+  PointCloudTopic->Advertise();
+
+  LidarThread = new LidarThreadProcess(ThreadSleepTime, *UniqueThreadName, this);
+
+  if (LidarThread)
+  {
+    LidarThread->Init();
+    LidarThread->LidarThreadInit();
+    UE_LOG(LogTemp, Warning, TEXT("Lidar thread initialized!"));
+  }
+}
+
 void AVelodyneLidarActor::SetPublishLidar()
 {
   PublishLidarData = true;
@@ -94,7 +95,7 @@ void AVelodyneLidarActor::LidarThreadTick()
   //   return;
   // }
 
-  //float TimeSinceLastOperation = CurrentGameTime - LastOperationTime;
+  // float TimeSinceLastOperation = CurrentGameTime - LastOperationTime;
 
   //! Make sure to come all the way out of all function routines with this same check
   //! so as to ensure thread exits as quickly as possible, allowing game thread to finish

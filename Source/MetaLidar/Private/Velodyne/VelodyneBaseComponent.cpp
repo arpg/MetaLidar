@@ -18,7 +18,6 @@ UVelodyneBaseComponent::UVelodyneBaseComponent()
   Sensor.MaxRange = 50.0f * 100; // Convert from meters to centimeters
 
   FrameName = TEXT("horiz/ouster");
-
   PointStep = 13; // 4 bytes each for X, Y, Z, and 1 byte for intensity
 
   UE_LOG(LogTemp, Display, TEXT("AVelodyneLidarActor Constructor called"));

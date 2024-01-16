@@ -38,6 +38,7 @@ protected:
 
   void SetPublishLidar();
 
+
   // Publish lidar data (Triggered by Timer)
   bool PublishLidarData;
   float Frequency;
@@ -55,4 +56,6 @@ public:
    * calculate raytracing and generate LiDAR packet data
    */
   virtual void LidarThreadTick() override;
+  void StartLidar(FString RosTopic);
+
 };
